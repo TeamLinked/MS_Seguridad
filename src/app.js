@@ -35,7 +35,7 @@ app.delete('/delete',async(req,res)=>{
         answer:"Unsuccessfully"
       });
     }else{
-      res.send('successfully');
+      res.send('Successfully');
     }
   })
 });
