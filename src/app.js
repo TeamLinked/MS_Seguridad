@@ -4,10 +4,14 @@ const cors = require('cors');
 const ldap = require('ldapjs');
 const morgan= require('morgan');
 const router = express.Router();
+const jwt = require('jsonwebtoken')
+
+const jwtKey = 'my_secret_key'
+const jwtExpirySeconds = 60 * 60 * 24
+
 
 const app = express()
 const client = ldap.createClient({url: 'ldap://localhost:389'});
-
 
 
 const run = async() => 
@@ -27,9 +31,9 @@ app.listen(port, async() => {
   await run();
 });
 
-app.delete('/delete',async(req,res)=>{
+app.delete('/delete',async(req,res)=> {
   await run();
-  await client.del(`cn=${req.body.user},ou=academy,dc=arqsoft,dc=unal,dc=edu,dc=co`,(err)=>{
+  await client.del(`cn=${req.body.user},ou=academy,dc=arqsoft,dc=unal,dc=edu,dc=co`,(err) => {
     if(err){
       res.send({
         answer:"Unsuccessfully"
@@ -40,14 +44,15 @@ app.delete('/delete',async(req,res)=>{
   })
 });
 
-app.post('/add',async(req,res)=>{
+app.post('/add',async(req,res) => {
   await run();
-  await client.add(`cn=${req.body.cn},ou=academy,dc=arqsoft,dc=unal,dc=edu,dc=co`,req.body, (err)=>{
+  await client.add(`cn=${req.body.cn},ou=academy,dc=arqsoft,dc=unal,dc=edu,dc=co`,req.body, (err) => { 
        if(err){
         res.send({
           answer:"Unsuccessfully"
+          // answer: err
         });
-       }else{
+       }else {
         res.send({
           answer:"Successfully"
         });
@@ -55,15 +60,30 @@ app.post('/add',async(req,res)=>{
   })
 });
 
-  app.post('/log', (req,res) =>{
-    client.bind(`cn=${req.body.username},ou=academy,dc=arqsoft,dc=unal,dc=edu,dc=co`,req.body.password, (err)=>{
-      if(err){
+  app.post('/log', (req, res) => {
+
+    var username = req.body.username
+    var password = req.body.password
+
+    client.bind(`cn=${username},ou=academy,dc=arqsoft,dc=unal,dc=edu,dc=co`, password, (err) => {
+      if(err) {
         res.send({
-          answer:"Unsuccessfully"
+          // answer: "Unsuccessfully"
+          answer: err
         });
-      }else
-      res.send({
-        answer:"Successfully"
-      });
+      } else {
+          var token = jwt.sign({ username }, jwtKey, {
+            algorithm: 'HS256',
+            expiresIn: jwtExpirySeconds
+          })
+          // console.log('token:', token)
+          // res.cookie('token', token, { maxAge: jwtExpirySeconds * 1000 })
+          // res.end()
+
+          res.send({ 
+            token,
+            // answer:"Successfully"
+          });
+        }      
     })
   })
