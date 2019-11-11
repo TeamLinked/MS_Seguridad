@@ -1,0 +1,7 @@
+version: '2'
+services:
+  app:
+    build: ./
+    image: adchavesm:API
+    ports:
+      - 8086:8086

@@ -1,17 +1,14 @@
 const express= require('express');
 const bodyParser=require('body-parser');
-const passport=require('passport');
 const cors = require('cors');
-const ldapstrategy=require('passport-ldapauth');
 const ldap = require('ldapjs');
 const morgan= require('morgan');
 const router = express.Router();
 
 const app = express()
+const client = ldap.createClient({url: 'ldap://localhost:389'});
 
-var client = ldap.createClient({
-    url: 'ldap://localhost:389'
-});
+
 
 const run = async() => 
     await client.bind('cn=admin,dc=arqsoft,dc=unal,dc=edu,dc=co','admin',()=>{
@@ -21,7 +18,6 @@ const run = async() =>
 
 app.use(morgan('dev'));
 app.use(bodyParser.json())
-app.use(passport.initialize());
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: false}));
 const port = process.env.PORT || 8086;
@@ -30,9 +26,6 @@ app.listen(port, async() => {
   console.log(`Listening on port ${port}`)
   await run();
 });
-run();
-
-
 
 app.delete('/delete',async(req,res)=>{
   await run();
